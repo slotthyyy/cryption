@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import base64
+import binascii
+import argparse
+import sys
+
+ENCODERS = {
+    "Base64": base64.b64encode,
+    "Base32": base64.b32encode,
+    "Base16": base64.b16encode,
+    "Base85": base64.b85encode,
+}
+
+DECODERS = {
+    "Base64": base64.b64decode,
+    "Base32": base64.b32decode,
+    "Base16": base64.b16decode,
+    "Base85": base64.b85decode,
+}
+
+def main():
+    parser = argparse.ArgumentParser(description="Encode/decode a string in several formats")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-e", "--encode", type=str, help="String to encode")
+    group.add_argument("-d", "--decode", type=str, help="String to decode")
+    args = parser.parse_args()
+
+    if args.encode:
+        data = args.encode.encode("utf-8")
+        for name, func in ENCODERS.items():
+            print(f"{name}: {func(data).decode('utf-8')}")
+    else:
+        data = args.decode.encode("utf-8")
+        found = False
+        for name, func in DECODERS.items():
+            try:
+                result = func(data).decode("utf-8")
+                print(f"{name}: {result}")
+                found = True
+            except (binascii.Error, ValueError):
+                pass
+        if not found:
+            print("Input isn't valid in any supported format.")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit("\n INTERRUPTED BY USER")
